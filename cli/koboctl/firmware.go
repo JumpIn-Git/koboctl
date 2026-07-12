@@ -1,0 +1,38 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/jumpin-git/koboctl/utils"
+)
+
+func installFirmware(ctx context.Context, overwrite bool, kroot string) error {
+	if !overwrite {
+		for _, f := range []string{
+			"KoboRoot.tgz",
+			"upgrade",
+			"manifest.md5sum",
+		} { // check if any of these exist to not overwrite
+			_, err := os.Stat(filepath.Join(kroot, ".kobo", f))
+			if err == nil {
+				return fmt.Errorf("file %s already exists", f)
+			} else if !os.IsNotExist(err) {
+				return err
+			}
+		}
+	}
+
+	url, err := utils.UpgradeCheck(kroot)
+	if err != nil {
+		return err
+	}
+	if url == "" {
+		fmt.Println("No update found!")
+		return nil
+	}
+
+	return saveAndExtract(ctx, url, filepath.Join(kroot, ".kobo"), "firmware", "kobo-update-*.zip", utils.Zip)
+}
