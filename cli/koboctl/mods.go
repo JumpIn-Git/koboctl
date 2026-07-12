@@ -58,35 +58,48 @@ func saveAndExtract(ctx context.Context, url, dst, modName, pattern string, form
 	return nil
 }
 
-func installCadmus(ctx context.Context, nickelmenu bool, kroot string) error {
-	if err := installMod("ogkevin/cadmus", "cadmus-kobo.tar.gz", func(url, tagName string) error {
-		return saveAndExtract(ctx, url, filepath.Join(kroot, ".adds", "cadmus"), "Cadmus", fmt.Sprintf("cadmus-kobo-%s-*.tar.gz", tagName), utils.Tgz)
+type modDef struct {
+	repo    string
+	asset   string // can contain %s (tag name)
+	dir     string // .adds/{dir}
+	pattern string // tmp pattern
+	nmName  string
+	nmEntry string
+	format  utils.ExtractFormat
+}
+
+func installModDef(ctx context.Context, m modDef, kroot string, nickelmenu bool) error {
+	if err := installMod(m.repo, m.asset, func(url, tagName string) error {
+		return saveAndExtract(ctx, url, filepath.Join(kroot, ".adds", m.dir), m.dir, fmt.Sprintf(m.pattern, tagName), m.format)
 	}); err != nil {
 		return err
 	}
 	if nickelmenu {
-		if err := utils.OptWrite(filepath.Join(kroot, ".adds", "nm", "cadmus"),
-			`menu_item : main : Cadmus : cmd_spawn : quiet : exec /mnt/onboard/.adds/cadmus/cadmus.sh`); err != nil {
+		if err := utils.OptWrite(filepath.Join(kroot, ".adds", "nm", m.nmName), m.nmEntry); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
+func installCadmus(ctx context.Context, nickelmenu bool, kroot string) error {
+	return installModDef(ctx, modDef{
+		repo: "ogkevin/cadmus", asset: "cadmus-kobo.tar.gz",
+		dir: "cadmus", pattern: "cadmus-kobo-%s-*.tar.gz",
+		nmName:  "cadmus",
+		nmEntry: "menu_item : main : Cadmus : cmd_spawn : quiet : exec /mnt/onboard/.adds/cadmus/cadmus.sh",
+		format:  utils.Tgz,
+	}, kroot, nickelmenu)
+}
+
 func installKOReader(ctx context.Context, nickelmenu bool, kroot string) error {
-	if err := installMod("koreader/koreader", "koreader-kobo-%s.zip",
-		func(url, tagName string) error {
-			return saveAndExtract(ctx, url, filepath.Join(kroot, ".adds", "koreader"), "KOReader", fmt.Sprintf("koreader-kobo-%s-*.zip", tagName), utils.Zip)
-		}); err != nil {
-		return err
-	}
-	if nickelmenu {
-		if err := utils.OptWrite(filepath.Join(kroot, ".adds", "nm", "koreader"),
-			`menu_item : main : KOReader : cmd_spawn : quiet : exec /mnt/onboard/.adds/koreader/koreader.sh`); err != nil {
-			return err
-		}
-	}
-	return nil
+	return installModDef(ctx, modDef{
+		repo: "koreader/koreader", asset: "koreader-kobo-%s.zip",
+		dir: "koreader", pattern: "koreader-kobo-%s-*.zip",
+		nmName:  "koreader",
+		nmEntry: "menu_item : main : KOReader : cmd_spawn : quiet : exec /mnt/onboard/.adds/koreader/koreader.sh",
+		format:  utils.Zip,
+	}, kroot, nickelmenu)
 }
 
 func installNickelMenu(kroot string, overwrite bool) error {
