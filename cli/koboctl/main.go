@@ -36,9 +36,6 @@ func main() {
 
 	if len(os.Args) < 2 {
 		fmt.Fprintf(os.Stderr, "expected one of: %s subcommand\n", strings.Join(subcommands, ", "))
-		installCmd.Usage()
-		firmwareCmd.Usage()
-		sideloadCmd.Usage()
 		os.Exit(1)
 	}
 
@@ -56,9 +53,6 @@ func main() {
 		err = runSideload(kroot)
 	default:
 		err = fmt.Errorf("expected one of: %s subcommand", strings.Join(subcommands, ", "))
-		installCmd.Usage()
-		firmwareCmd.Usage()
-		sideloadCmd.Usage()
 	}
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -77,7 +71,7 @@ func runInstall(ctx context.Context, kroot, nmconfig string, overwrite bool, arg
 		if err := huh.NewMultiSelect[string]().
 			Title("What to install? (space to toggle)").
 			Options(
-				huh.Option[string]{Key: "Cadmus", Value: "cadmus"}.Selected(true),
+				huh.Option[string]{Key: "Plato", Value: "plato"}.Selected(true),
 				huh.Option[string]{Key: "KOReader", Value: "koreader"}.Selected(true),
 				huh.Option[string]{Key: "NickelMenu", Value: "nickelmenu"}.Selected(true),
 			).
@@ -86,11 +80,11 @@ func runInstall(ctx context.Context, kroot, nmconfig string, overwrite bool, arg
 		}
 	}
 
-	var cadmus, koreader, nickelmenu bool
+	var plato, koreader, nickelmenu bool
 	for _, i := range args {
 		switch strings.ToLower(i) {
-		case "cadmus":
-			cadmus = true
+		case "plato":
+			plato = true
 		case "koreader":
 			koreader = true
 		case "nickelmenu":
@@ -105,25 +99,11 @@ func runInstall(ctx context.Context, kroot, nmconfig string, overwrite bool, arg
 			return err
 		}
 		if nmconfig != "" {
-			nm, err := os.Open(nmconfig)
+			data, err := os.ReadFile(nmconfig)
 			if err != nil {
 				return err
 			}
-			defer nm.Close()
-			stat, err := os.Stat(nmconfig)
-			if err != nil {
-				return err
-			}
-			if stat.IsDir() {
-				return fmt.Errorf("nmconfig must be a file, not a directory")
-			}
-			f, err := os.Create(filepath.Join(kroot, ".adds", "nm", stat.Name()))
-			if err != nil {
-				return err
-			}
-			defer f.Close()
-			_, err = io.Copy(f, nm)
-			if err != nil {
+			if err := os.WriteFile(filepath.Join(kroot, ".adds", "nm", filepath.Base(nmconfig)), data, 0644); err != nil {
 				return err
 			}
 		}
@@ -131,8 +111,8 @@ func runInstall(ctx context.Context, kroot, nmconfig string, overwrite bool, arg
 			return err
 		}
 	}
-	if cadmus {
-		if err := installCadmus(ctx, nickelmenu, kroot); err != nil {
+	if plato {
+		if err := installPlato(ctx, nickelmenu, kroot); err != nil {
 			return err
 		}
 	}

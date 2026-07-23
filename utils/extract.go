@@ -36,7 +36,7 @@ func (pf *progressFile) ReadAt(p []byte, off int64) (int, error) {
 	return n, err
 }
 
-func (ep *ExtractFormat) GetPFile(stat os.FileInfo, f *os.File, name string) *progressFile {
+func (ep *ExtractFormat) InitProgress(stat os.FileInfo, f *os.File, name string) *progressFile {
 	bar := progressbar.DefaultBytes(stat.Size(), fmt.Sprintf("unpacking %s", name))
 	return &progressFile{File: f, bar: bar}
 }
@@ -47,7 +47,7 @@ var (
 )
 
 func extractFormat(ctx context.Context, format ExtractFormat, f *os.File, stat os.FileInfo, name string, getOut func(f archives.FileInfo) string) error {
-	bar := format.GetPFile(stat, f, name)
+	bar := format.InitProgress(stat, f, name)
 	err := format.Extract(ctx, bar, func(ctx context.Context, f archives.FileInfo) error {
 		out := getOut(f)
 		if out == "" {

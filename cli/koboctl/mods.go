@@ -60,10 +60,10 @@ func saveAndExtract(ctx context.Context, url, dst, modName, pattern string, form
 
 type modDef struct {
 	repo    string
-	asset   string // can contain %s (tag name)
+	asset   string // can optionally contain %s (tag name)
 	dir     string // .adds/{dir}
-	pattern string // tmp pattern
-	nmName  string
+	pattern string // tmp pattern, %s is replaced with tag name
+	nmName  string // .adds/nm/{nmName}
 	nmEntry string
 	format  utils.ExtractFormat
 }
@@ -82,13 +82,13 @@ func installModDef(ctx context.Context, m modDef, kroot string, nickelmenu bool)
 	return nil
 }
 
-func installCadmus(ctx context.Context, nickelmenu bool, kroot string) error {
+func installPlato(ctx context.Context, nickelmenu bool, kroot string) error {
 	return installModDef(ctx, modDef{
-		repo: "ogkevin/cadmus", asset: "cadmus-kobo.tar.gz",
-		dir: "cadmus", pattern: "cadmus-kobo-%s-*.tar.gz",
-		nmName:  "cadmus",
-		nmEntry: "menu_item : main : Cadmus : cmd_spawn : quiet : exec /mnt/onboard/.adds/cadmus/cadmus.sh",
-		format:  utils.Tgz,
+		repo: "baskerville/plato", asset: "plato-%s.zip",
+		dir: "plato", pattern: "plato-%s-*.zip",
+		nmName:  "plato",
+		nmEntry: "menu_item : main : Plato : cmd_spawn : quiet : exec /mnt/onboard/.adds/plato/plato.sh",
+		format:  utils.Zip,
 	}, kroot, nickelmenu)
 }
 
