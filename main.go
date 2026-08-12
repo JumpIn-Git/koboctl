@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jumpin-git/koboctl/cli/koboctl/cmd"
+	"github.com/jumpin-git/koboctl/cmd"
 )
 
 func main() {

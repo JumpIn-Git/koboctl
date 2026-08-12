@@ -1,1 +1,6 @@
 koboctl
+test-kobo/**
+!test-kobo/.kobo/
+!test-kobo/.kobo/version
+!test-kobo/.kobo/Kobo
+!test-kobo/.kobo/Kobo/Kobo eReader.conf

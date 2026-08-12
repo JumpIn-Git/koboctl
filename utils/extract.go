@@ -12,6 +12,7 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
+// zip also used ReadAt as it doesn't read from start to end, this should work with any formats
 type ExtractFormat struct {
 	archives.Extractor
 }
@@ -112,8 +113,7 @@ func OptWrite(path, content string) error {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_EXCL, 0666)
 	if os.IsExist(err) {
 		return nil
-	}
-	if err != nil {
+	} else if err != nil {
 		return err
 	}
 	defer f.Close()

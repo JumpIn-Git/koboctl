@@ -1,4 +1,4 @@
-module github.com/jumpin-git/koboctl/cli/koboctl
+module github.com/jumpin-git/koboctl
 
 go 1.26.4
 
