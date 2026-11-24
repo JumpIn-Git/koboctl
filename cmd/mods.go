@@ -52,31 +52,31 @@ func saveAndExtract(ctx context.Context, url, dst, modName, pattern string, form
 	if err != nil {
 		return fmt.Errorf("statting %s: %w", modName, err)
 	}
+
 	if prefixes != nil {
-		if err := utils.ExtractPrefix(ctx, format, tmp, stat, prefixes, modName); err != nil {
-			return fmt.Errorf("extracting %s: %w", modName, err)
-		}
+		err = utils.ExtractPrefix(ctx, format, tmp, stat, prefixes, modName)
 	} else {
-		if err := utils.Extract(ctx, format, tmp, stat, dst, modName); err != nil {
-			return fmt.Errorf("extracting %s: %w", modName, err)
-		}
+		err = utils.Extract(ctx, format, tmp, stat, dst, modName)
+	}
+	if err != nil {
+		return fmt.Errorf("extracting %s: %w", modName, err)
 	}
 	return nil
 }
 
 type modDef struct {
-	repo     string
-	asset    string // can optionally contain %s (tag name)
-	dir      string // .adds/{dir}
-	pattern  string // tmp pattern, %s is replaced with tag name
-	nmName   string // .adds/nm/{nmName}
-	nmEntry  string
-	format   utils.ExtractFormat
-	prefixes *[]string // optional, only extract paths with these prefixes to .adds/{dir}
+	repo      string
+	assetName string // can optionally contain %s (tag name)
+	dir       string // .adds/{dir}
+	pattern   string // tmp pattern, %s is replaced with tag name
+	nmName    string // .adds/nm/{nmName}
+	nmEntry   string
+	format    utils.ExtractFormat
+	prefixes  *[]string // optional, only extract paths with these prefixes to .adds/{dir}
 }
 
 func installModDef(ctx context.Context, m modDef, kroot string, nickelmenu bool) error {
-	if err := installMod(m.repo, m.asset, func(url, tagName string) error {
+	if err := installMod(m.repo, m.assetName, func(url, tagName string) error {
 		var prefixes utils.Prefixes
 		if m.prefixes != nil {
 			prefixes = make(utils.Prefixes, len(*m.prefixes))
@@ -98,7 +98,7 @@ func installModDef(ctx context.Context, m modDef, kroot string, nickelmenu bool)
 
 func installPlato(ctx context.Context, nickelmenu bool, kroot string) error {
 	return installModDef(ctx, modDef{
-		repo: "baskerville/plato", asset: "plato-%s.zip",
+		repo: "baskerville/plato", assetName: "plato-%s.zip",
 		dir: "plato", pattern: "plato-%s-*.zip",
 		nmName:  "plato",
 		nmEntry: "menu_item : main : Plato : cmd_spawn : quiet : exec /mnt/onboard/.adds/plato/plato.sh",
@@ -106,9 +106,20 @@ func installPlato(ctx context.Context, nickelmenu bool, kroot string) error {
 	}, kroot, nickelmenu)
 }
 
+func installCadmus(ctx context.Context, nickelmenu bool, kroot string) error {
+	return installModDef(ctx, modDef{
+		repo: "ogkevin/cadmus", assetName: "cadmus-kobo.tar.gz",
+		dir: "cadmus", pattern: "cadmus-%s-*.zip",
+		nmName:  "cadmus",
+		nmEntry: "menu_item  :main  :Cadmus      :cmd_spawn  :quiet:/mnt/onboard/.adds/cadmus/cadmus.sh",
+		format:  utils.Tgz,
+	}, kroot, nickelmenu)
+}
+
+// TODO select correct zip (v5 for newer ereaders)
 func installKOReader(ctx context.Context, nickelmenu bool, kroot string) error {
 	return installModDef(ctx, modDef{
-		repo: "koreader/koreader", asset: "koreader-kobo-%s.zip",
+		repo: "koreader/koreader", assetName: "koreader-kobo-%s.zip",
 		dir: "koreader", pattern: "koreader-kobo-%s-*.zip",
 		nmName:   "koreader",
 		nmEntry:  "menu_item : main : KOReader : cmd_spawn : quiet : exec /mnt/onboard/.adds/koreader/koreader.sh",

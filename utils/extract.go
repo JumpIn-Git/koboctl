@@ -2,8 +2,10 @@ package utils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,7 +14,7 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-// zip also used ReadAt as it doesn't read from start to end, this should work with any formats
+// zip also uses ReadAt as it doesn't read from start to end, this should work with any format
 type ExtractFormat struct {
 	archives.Extractor
 }
@@ -111,7 +113,7 @@ func ExtractPrefix(ctx context.Context, format ExtractFormat, f *os.File, stat o
 
 func OptWrite(path, content string) error {
 	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_EXCL, 0666)
-	if os.IsExist(err) {
+	if errors.Is(err, fs.ErrExist) {
 		return nil
 	} else if err != nil {
 		return err

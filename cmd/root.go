@@ -22,7 +22,7 @@ var overwrite bool
 var ctx context.Context
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&kroot, "kobo", "", "path to Kobo root directory")
+	rootCmd.PersistentFlags().StringVar(&kroot, "kobo", "", "path to Kobo root directory (for testing)")
 	rootCmd.PersistentFlags().BoolVar(&overwrite, "overwrite", false, "overwrite existing files if applicable")
 }
 

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -32,11 +33,11 @@ func installFirmware(ctx context.Context, overwrite bool, kroot string) error {
 			"upgrade",
 			"manifest.md5sum",
 		} { // check if any of these exist to not overwrite
-			_, err := os.Stat(filepath.Join(kroot, ".kobo", f))
+			_, err := os.Lstat(filepath.Join(kroot, ".kobo", f))
 			if err == nil {
-				return fmt.Errorf("file %s already exists", f)
-			} else if !os.IsNotExist(err) {
-				return err
+				return fmt.Errorf("upgrade file %s already exists", f)
+			} else if !errors.Is(err, os.ErrNotExist) {
+				return fmt.Errorf("checking for %s: %w", f, err)
 			}
 		}
 	}

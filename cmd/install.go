@@ -15,7 +15,7 @@ func init() {
 	installCmd := &cobra.Command{
 		Use:     "install [plato|koreader|nickelmenu ...]",
 		Short:   "install mods onto the Kobo",
-		Aliases: []string{"in"},
+		Aliases: []string{"in", "i"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runInstall(ctx, kroot, nmconfig, overwrite, args)
 		},
@@ -37,19 +37,22 @@ func runInstall(ctx context.Context, kroot, nmconfig string, overwrite bool, arg
 				huh.Option[string]{Key: "Plato", Value: "plato"}.Selected(true),
 				huh.Option[string]{Key: "KOReader", Value: "koreader"}.Selected(true),
 				huh.Option[string]{Key: "NickelMenu", Value: "nickelmenu"}.Selected(true),
+				huh.Option[string]{Key: "Cadmus (newer software)", Value: "cadmus"}.Selected(false),
 			).
 			Value(&args).Run(); err != nil {
 			return fmt.Errorf("selection: %w", err)
 		}
 	}
 
-	var plato, koreader, nickelmenu bool
+	var plato, koreader, cadmus, nickelmenu bool
 	for _, i := range args {
 		switch strings.ToLower(i) {
 		case "plato":
 			plato = true
 		case "koreader":
 			koreader = true
+		case "cadmus":
+			cadmus = true
 		case "nickelmenu":
 			nickelmenu = true
 		default:
@@ -82,6 +85,11 @@ func runInstall(ctx context.Context, kroot, nmconfig string, overwrite bool, arg
 	}
 	if koreader {
 		if err := installKOReader(ctx, nickelmenu, kroot); err != nil {
+			return err
+		}
+	}
+	if cadmus {
+		if err := installCadmus(ctx, nickelmenu, kroot); err != nil {
 			return err
 		}
 	}

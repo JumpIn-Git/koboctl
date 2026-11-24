@@ -13,7 +13,7 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-var client = http.Client{Timeout: 1 * time.Minute}
+var client = http.Client{Timeout: 20 * time.Second}
 
 func Get(url, name string) (*http.Response, error) {
 	if name == "" {
@@ -43,13 +43,13 @@ func Download(url, name string, dst *os.File) error {
 	return nil
 }
 
-type Asset struct {
-	Name string `json:"name"`
-	Url  string `json:"browser_download_url"`
-}
 type Release struct {
 	TagName string  `json:"tag_name"`
 	Assets  []Asset `json:"assets"`
+}
+type Asset struct {
+	Name string `json:"name"`
+	Url  string `json:"browser_download_url"`
 }
 
 func GetRelease(repo string) (*Release, error) {
@@ -75,14 +75,13 @@ func UpgradeCheck(kroot string) (string, error) {
 	upgrade, err := kobo.CheckUpgrade(id, "kobo", version, serial)
 	if err != nil {
 		return "", err
-	}
-	if !upgrade.UpgradeType.IsUpdate() {
+	} else if !upgrade.UpgradeType.IsUpdate() {
 		return "", nil
 	}
 
 	proceed := true
 	if err := huh.NewConfirm().
-		Title(fmt.Sprintf("Update is %s, upgrade?", upgrade.UpgradeType)).
+		Title(fmt.Sprintf("Update is %s, upgrade?", upgrade.UpgradeType.String())).
 		Description(fmt.Sprintf("Upgrade from %s to %s", version, upgrade.ParseVersion())).
 		Value(&proceed).Run(); err != nil {
 		return "", fmt.Errorf("selection: %w", err)
